@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Equipment } from '../../types';
 
 interface CompareModalProps {
@@ -59,15 +59,6 @@ export function CompareModal({ isOpen, onClose, products }: CompareModalProps) {
                     <h3 className="text-2xl font-bold text-slate-900  mb-2">{product.name}</h3>
                     <p className="text-sm text-slate-600  mb-6 flex-grow">{product.tagline}</p>
                     
-                    <div className="space-y-4 border-t border-slate-200  pt-6">
-                      <h4 className="text-xs font-bold uppercase tracking-widest text-slate-900  mb-4">Destaques Principais</h4>
-                      {product.highlights.map((highlight, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <Check size={16} className="text-green-500 shrink-0 mt-0.5" />
-                          <span className="text-sm text-slate-700  font-light leading-relaxed">{highlight}</span>
-                        </div>
-                      ))}
-                    </div>
 
                     <button className="mt-8 w-full bg-slate-900  text-white  py-4 text-xs font-bold uppercase tracking-widest hover:bg-slate-800  transition-colors rounded-lg">
                       Solicitar Orçamento

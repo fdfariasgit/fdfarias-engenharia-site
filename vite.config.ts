@@ -20,6 +20,15 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react/') || id.includes('node_modules/clsx/') || id.includes('node_modules/tailwind-merge/')) {
             return 'ui';
           }
+          if (id.includes('node_modules/@firebase/auth') || id.includes('node_modules/firebase/auth')) {
+            return 'firebase-auth';
+          }
+          if (id.includes('node_modules/@firebase/firestore') || id.includes('node_modules/firebase/firestore') || id.includes('node_modules/@firebase/firestore-types')) {
+            return 'firebase-firestore';
+          }
+          if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
+            return 'firebase-core';
+          }
         }
       }
     }

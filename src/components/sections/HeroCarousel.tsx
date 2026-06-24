@@ -24,7 +24,7 @@ export function HeroCarousel() {
   }, [emblaApi]);
 
   return (
-    <section className="relative w-full bg-slate-900 pt-24 pb-0 flex flex-col">
+    <section className="relative w-full bg-slate-50 pt-24 pb-0 flex flex-col">
       {/* Carousel Area */}
       <div className="relative w-full h-[60vh] lg:h-[75vh] overflow-hidden" ref={emblaRef}>
         <div className="flex h-full">
@@ -37,8 +37,8 @@ export function HeroCarousel() {
               />
               {/* Overlay Azul Escuro (Premium) */}
               <div className="absolute inset-0 bg-blue-950/70 mix-blend-multiply"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-50/80 via-slate-50/40 to-transparent"></div>
             </div>
           ))}
         </div>
@@ -47,12 +47,14 @@ export function HeroCarousel() {
         <button 
           onClick={scrollPrev}
           className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all z-20"
+          aria-label="Slide anterior"
         >
           <ChevronLeft size={24} />
         </button>
         <button 
           onClick={scrollNext}
           className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all z-20"
+          aria-label="Próximo slide"
         >
           <ChevronRight size={24} />
         </button>
@@ -67,7 +69,7 @@ export function HeroCarousel() {
               className="max-w-3xl"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6 drop-shadow-lg">
-                VENDA SEU EQUIPAMENTO DE ULTRASSOM NA FRAN
+                VENDA SEU EQUIPAMENTO DE ULTRASSOM NA FD FARIAS
               </h1>
               <p className="text-lg md:text-xl text-slate-200 mb-10 font-light max-w-2xl drop-shadow-md">
                 Anuncie e venda seu equipamento e acessórios para ultrassom aqui! Conectamos quem quer vender com quem precisa comprar.
@@ -95,11 +97,11 @@ export function HeroCarousel() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-6 shadow-xl flex items-center justify-between border border-slate-600/50 hover:-translate-y-1 transition-transform"
+            className="bg-white rounded-2xl p-6 shadow-xl flex items-center justify-between border border-slate-200 hover:-translate-y-1 transition-transform"
           >
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-sky-400 uppercase bg-sky-400/10 px-2 py-1 rounded">Entregamos para</span>
-              <h3 className="text-3xl font-extrabold text-white mt-2 leading-none">Todo<br/>Brasil</h3>
+              <span className="text-[10px] font-bold tracking-widest text-sky-600 uppercase bg-sky-100 px-2 py-1 rounded">Entregamos para</span>
+              <h3 className="text-3xl font-extrabold text-slate-900 mt-2 leading-none">Todo<br/>Brasil</h3>
             </div>
             <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 shrink-0">
               <MapPin size={32} />
@@ -127,15 +129,15 @@ export function HeroCarousel() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-center border border-slate-500/50 hover:-translate-y-1 transition-transform relative overflow-hidden"
+            className="bg-white rounded-2xl p-6 shadow-xl flex flex-col justify-center border border-slate-200 hover:-translate-y-1 transition-transform relative overflow-hidden"
           >
-            <div className="absolute right-[-10%] top-[-10%] text-white/5">
+            <div className="absolute right-[-10%] top-[-10%] text-slate-900/5">
               <CreditCard size={120} />
             </div>
             <div className="relative z-10">
-              <span className="text-[10px] font-bold tracking-widest text-green-400 uppercase bg-green-400/10 px-2 py-1 rounded">Parcelamos em até</span>
-              <h3 className="text-5xl font-extrabold text-white mt-2 text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-white">48X</h3>
-              <p className="text-xs text-slate-300 mt-1 font-medium">Solicite uma simulação</p>
+              <span className="text-[10px] font-bold tracking-widest text-green-600 uppercase bg-green-100 px-2 py-1 rounded">Parcelamos em até</span>
+              <h3 className="text-5xl font-extrabold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-sky-600">48X</h3>
+              <p className="text-xs text-slate-600 mt-1 font-medium">Solicite uma simulação</p>
             </div>
           </motion.div>
 
