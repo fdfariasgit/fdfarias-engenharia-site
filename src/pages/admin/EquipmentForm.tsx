@@ -283,12 +283,12 @@ export function EquipmentForm() {
       } else {
         await equipmentService.add(finalData);
       }
-      navigate('/admin');
+      navigate('/admin/equipamentos');
     } catch (err: any) {
       console.error(err);
       if (err.code === 'already-exists') {
         // Ocorre quando o Firebase tenta reenviar a requisição após sucesso anterior (retry de rede)
-        navigate('/admin');
+        navigate('/admin/equipamentos');
       } else {
         setError('Erro ao salvar equipamento no banco de dados. Verifique sua conexão.');
         setSaving(false);

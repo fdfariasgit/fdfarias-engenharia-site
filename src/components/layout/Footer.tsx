@@ -76,8 +76,8 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-blue-100 text-sm font-medium">
                 <Mail size={18} className="text-blue-300 shrink-0" />
-                <a href={`mailto:${settings?.email || 'SAN98@OUTLOOK.COM.BR'}`} className="hover:text-white transition-colors">
-                  {settings?.email || 'SAN98@OUTLOOK.COM.BR'}
+                <a href={`mailto:${settings?.email || 'san98@outlook.com.br'}`} className="hover:text-white transition-colors">
+                  {settings?.email || 'san98@outlook.com.br'}
                 </a>
               </li>
             </ul>

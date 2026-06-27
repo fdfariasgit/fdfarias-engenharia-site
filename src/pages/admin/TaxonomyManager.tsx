@@ -30,7 +30,6 @@ export function TaxonomyManager() {
       setLoading(true);
       let data = await taxonomyService.getAll();
       
-      // Auto-inicialização para a primeira vez que acessar
       if (data.length === 0) {
         await taxonomyService.initializeDefaults();
         data = await taxonomyService.getAll();
@@ -127,10 +126,15 @@ export function TaxonomyManager() {
     inputValue: string,
     setInputValue: (val: string) => void
   ) => (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-      <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
-        {icon}
-        <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+      <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="flex items-center gap-3">
+          {icon}
+          <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+        </div>
+        <span className="text-xs font-bold text-slate-500 bg-slate-200/50 px-2.5 py-1 rounded-full">
+          {data.length} {data.length === 1 ? 'item' : 'itens'}
+        </span>
       </div>
       
       <div className="p-5 flex-1 overflow-y-auto">
@@ -151,7 +155,7 @@ export function TaxonomyManager() {
           <button 
             type="submit"
             disabled={!inputValue.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -159,10 +163,12 @@ export function TaxonomyManager() {
 
         <div className="space-y-2">
           {data.length === 0 && (
-            <p className="text-sm text-slate-500 text-center py-4">Nenhum item cadastrado.</p>
+            <div className="text-sm text-slate-500 text-center py-8 border-2 border-dashed border-slate-200 rounded-xl">
+              Nenhum item cadastrado.
+            </div>
           )}
           {data.map(item => (
-            <div key={item.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-white hover:bg-slate-50 transition-colors">
+            <div key={item.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-white hover:bg-slate-50 transition-colors group">
               {editingId === item.id ? (
                 <div className="flex flex-1 gap-2 mr-2">
                   <input
@@ -172,31 +178,42 @@ export function TaxonomyManager() {
                     className="flex-1 px-3 py-1.5 border border-slate-300 rounded-md text-sm outline-none"
                     autoFocus
                   />
-                  <button type="button" onClick={() => handleUpdate(item.id)} className="text-xs font-bold bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200">
+                  <button type="button" onClick={() => handleUpdate(item.id)} className="text-xs font-bold bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200 transition-colors">
                     Salvar
                   </button>
-                  <button type="button" onClick={() => setEditingId(null)} className="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded hover:bg-slate-200">
+                  <button type="button" onClick={() => setEditingId(null)} className="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded hover:bg-slate-200 transition-colors">
                     Cancelar
                   </button>
                 </div>
               ) : (
                 <>
-                  <span className="font-medium text-slate-700">{item.name}</span>
-                  <div className="flex items-center gap-2">
+                  <span 
+                    className="font-medium text-slate-700 flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => {
+                      setEditingId(item.id);
+                      setEditItemName(item.name);
+                    }}
+                    title="Clique para editar"
+                  >
+                    {item.name}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       type="button"
                       onClick={() => {
                         setEditingId(item.id);
                         setEditItemName(item.name);
                       }} 
-                      className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button 
                       type="button"
                       onClick={() => handleDelete(item.id)} 
-                      className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -211,13 +228,13 @@ export function TaxonomyManager() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Categorias e Marcas</h1>
         <p className="text-sm text-slate-500">Gerencie as tags dinâmicas para o cadastro de equipamentos</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[calc(100vh-180px)] min-h-[500px]">
         {renderSection('Categorias', 'category', categories, <Tag className="w-5 h-5 text-blue-600" />, newCategoryName, setNewCategoryName)}
         {renderSection('Marcas', 'brand', brands, <Briefcase className="w-5 h-5 text-blue-600" />, newBrandName, setNewBrandName)}
       </div>

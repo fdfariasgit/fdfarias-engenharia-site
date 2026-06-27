@@ -3,19 +3,55 @@ import { Link } from 'react-router-dom';
 import { ticketService } from '../../services/ticketService';
 import { equipmentService } from '../../services/equipmentService';
 import type { Ticket, Equipment } from '../../types';
-import { 
-  Package, 
-  Wrench, 
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  Package,
+  Wrench,
   AlertCircle,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Plus,
+  FileEdit,
+  AlertTriangle,
+  Activity
 } from 'lucide-react';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+function getTimeAgo(dateStr: string): string {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Agora mesmo';
+  if (diffMins < 60) return `Há ${diffMins}min`;
+  if (diffHours < 24) return `Há ${diffHours}h`;
+  if (diffDays === 1) return 'Ontem';
+  if (diffDays < 7) return `Há ${diffDays} dias`;
+  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function getUrgencyLevel(createdAt: string): 'green' | 'yellow' | 'red' {
+  const diffHours = (Date.now() - new Date(createdAt).getTime()) / 3600000;
+  if (diffHours < 24) return 'green';
+  if (diffHours < 72) return 'yellow';
+  return 'red';
+}
 
 export function AdminDashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,133 +71,235 @@ export function AdminDashboard() {
     loadData();
   }, []);
 
-  const openTickets = tickets.filter(t => t.status === 'open').length;
-  const inProgressTickets = tickets.filter(t => t.status === 'in_progress').length;
-  const closedTickets = tickets.filter(t => t.status === 'closed').length;
+  const openTickets = tickets.filter(t => t.status === 'open');
+  const inProgressTickets = tickets.filter(t => t.status === 'in_progress');
+  const closedTickets = tickets.filter(t => t.status === 'closed');
+  const urgentTickets = openTickets.filter(t => getUrgencyLevel(t.createdAt) === 'red');
+
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Admin';
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl">
+
+      {/* Greeting */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Dashboard Geral</h1>
-        <p className="text-sm text-slate-500">Visão geral do sistema e manutenções</p>
+        <h1 className="text-2xl font-bold text-slate-800">
+          {getGreeting()}, {displayName} 👋
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
       </div>
 
-      {/* Métricas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Equipamentos</p>
-              <h3 className="text-3xl font-black text-slate-800">{equipment.length}</h3>
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link
+          to="/admin/chamados?status=open"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-red-200 transition-all group cursor-pointer"
+        >
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-2.5 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-100 transition-colors">
+              <AlertCircle className="w-5 h-5" />
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-              <Package className="w-6 h-6" />
-            </div>
+            {urgentTickets.length > 0 && (
+              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-red-500 text-white rounded-full animate-pulse">
+                {urgentTickets.length} atrasado{urgentTickets.length > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
-          <Link to="/admin/equipamentos" className="text-xs font-bold text-blue-600 flex items-center hover:text-blue-700 transition-colors">
-            Gerenciar Catálogo <ArrowRight className="w-3 h-3 ml-1" />
-          </Link>
-        </div>
+          <h3 className="text-2xl font-black text-slate-800">{openTickets.length}</h3>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Abertos</p>
+        </Link>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-sm font-semibold text-red-500 uppercase tracking-wider mb-1">Chamados Abertos</p>
-              <h3 className="text-3xl font-black text-red-600">{openTickets}</h3>
-            </div>
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg">
-              <AlertCircle className="w-6 h-6" />
-            </div>
+        <Link
+          to="/admin/chamados?status=in_progress"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group cursor-pointer"
+        >
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl mb-3 w-fit group-hover:bg-amber-100 transition-colors">
+            <Clock className="w-5 h-5" />
           </div>
-          <Link to="/admin/chamados" className="text-xs font-bold text-red-600 flex items-center hover:text-red-700 transition-colors">
-            Ver Chamados <ArrowRight className="w-3 h-3 ml-1" />
-          </Link>
-        </div>
+          <h3 className="text-2xl font-black text-slate-800">{inProgressTickets.length}</h3>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Em Andamento</p>
+        </Link>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-1">Em Andamento</p>
-              <h3 className="text-3xl font-black text-amber-600">{inProgressTickets}</h3>
-            </div>
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
-              <Clock className="w-6 h-6" />
-            </div>
+        <Link
+          to="/admin/chamados?status=closed"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group cursor-pointer"
+        >
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl mb-3 w-fit group-hover:bg-emerald-100 transition-colors">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
-          <Link to="/admin/chamados" className="text-xs font-bold text-amber-600 flex items-center hover:text-amber-700 transition-colors">
-            Acompanhar <ArrowRight className="w-3 h-3 ml-1" />
-          </Link>
-        </div>
+          <h3 className="text-2xl font-black text-slate-800">{closedTickets.length}</h3>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Concluídos</p>
+        </Link>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-sm font-semibold text-emerald-500 uppercase tracking-wider mb-1">Concluídos</p>
-              <h3 className="text-3xl font-black text-emerald-600">{closedTickets}</h3>
-            </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
+        <Link
+          to="/admin/equipamentos"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group cursor-pointer"
+        >
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mb-3 w-fit group-hover:bg-blue-100 transition-colors">
+            <Package className="w-5 h-5" />
           </div>
-          <Link to="/admin/chamados" className="text-xs font-bold text-emerald-600 flex items-center hover:text-emerald-700 transition-colors">
-            Histórico <ArrowRight className="w-3 h-3 ml-1" />
-          </Link>
-        </div>
+          <h3 className="text-2xl font-black text-slate-800">{equipment.length}</h3>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Equipamentos</p>
+        </Link>
       </div>
 
-      {/* Últimos Chamados */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-blue-600" /> Chamados Recentes
-          </h2>
-          <Link to="/admin/chamados" className="text-sm font-semibold text-blue-600 hover:text-blue-700">Ver Todos</Link>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Link
+          to="/admin/equipamentos/novo"
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all group"
+        >
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <Plus className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Novo Equipamento</p>
+            <p className="text-[11px] text-slate-500">Adicionar ao catálogo</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/chamados"
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-amber-300 hover:shadow-sm transition-all group"
+        >
+          <div className="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-100 transition-colors">
+            <Wrench className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Gerenciar Chamados</p>
+            <p className="text-[11px] text-slate-500">Atender solicitações</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/cms"
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-violet-300 hover:shadow-sm transition-all group"
+        >
+          <div className="p-2 bg-violet-50 text-violet-600 rounded-lg group-hover:bg-violet-100 transition-colors">
+            <FileEdit className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Editar Site</p>
+            <p className="text-[11px] text-slate-500">Textos e conteúdo</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Urgent Tickets - Needs Attention */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+            <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              Precisam de Atenção
+            </h2>
+            <Link to="/admin/chamados" className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              Ver todos <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-slate-50">
+            {openTickets.length === 0 ? (
+              <div className="p-8 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                <p className="text-sm font-medium text-slate-600">Tudo em dia!</p>
+                <p className="text-xs text-slate-400">Nenhum chamado aberto no momento</p>
+              </div>
+            ) : (
+              openTickets.slice(0, 5).map(ticket => {
+                const urgency = getUrgencyLevel(ticket.createdAt);
+                return (
+                  <div key={ticket.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${
+                      urgency === 'red' ? 'bg-red-500 animate-pulse' :
+                      urgency === 'yellow' ? 'bg-amber-400' : 'bg-emerald-400'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{ticket.title}</p>
+                      <p className="text-xs text-slate-500">{ticket.customerName}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                      urgency === 'red' ? 'bg-red-50 text-red-600' :
+                      urgency === 'yellow' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                    }`}>
+                      {getTimeAgo(ticket.createdAt)}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
-        <div className="p-0">
-          {tickets.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              Nenhum chamado registrado no momento.
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-slate-600 border-b border-slate-200 text-xs uppercase tracking-wider">
-                  <th className="p-4 font-semibold">Cliente</th>
-                  <th className="p-4 font-semibold">Assunto</th>
-                  <th className="p-4 font-semibold">Status</th>
-                  <th className="p-4 font-semibold">Data</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {tickets.slice(0, 5).map(ticket => (
-                  <tr key={ticket.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                    <td className="p-4 font-medium text-slate-900">{ticket.customerName}</td>
-                    <td className="p-4 text-slate-600">{ticket.title}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                        ticket.status === 'open' ? 'bg-red-100 text-red-700' :
-                        ticket.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
-                        'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {ticket.status === 'open' ? 'Aberto' : ticket.status === 'in_progress' ? 'Andamento' : 'Concluído'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-500 text-xs">
-                      {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-blue-500" />
+              Atividade Recente
+            </h2>
+          </div>
+
+          <div className="divide-y divide-slate-50">
+            {tickets.length === 0 && equipment.length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-500">
+                Nenhuma atividade registrada.
+              </div>
+            ) : (
+              // Merge tickets and equipment into a timeline, sorted by most recent
+              [...tickets.map(t => ({
+                id: t.id,
+                type: 'ticket' as const,
+                title: t.title,
+                subtitle: t.status === 'open' ? 'Chamado aberto' : t.status === 'in_progress' ? 'Em atendimento' : 'Concluído',
+                date: t.updatedAt || t.createdAt,
+                status: t.status
+              })),
+              ...equipment.slice(0, 3).map(e => ({
+                id: e.id,
+                type: 'equipment' as const,
+                title: e.name,
+                subtitle: `Equipamento • ${e.brand}`,
+                date: '', // Equipment doesn't have updatedAt in current schema
+                status: 'active' as const
+              }))]
+              .filter(item => item.date)
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 6)
+              .map(item => (
+                <div key={`${item.type}-${item.id}`} className="px-5 py-3.5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors">
+                  <div className={`p-1.5 rounded-lg ${
+                    item.type === 'ticket'
+                      ? item.status === 'open' ? 'bg-red-50 text-red-500' :
+                        item.status === 'in_progress' ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500'
+                      : 'bg-blue-50 text-blue-500'
+                  }`}>
+                    {item.type === 'ticket' ? <Wrench className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{item.title}</p>
+                    <p className="text-[11px] text-slate-400">{item.subtitle}</p>
+                  </div>
+                  {item.date && (
+                    <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                      {getTimeAgo(item.date)}
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
