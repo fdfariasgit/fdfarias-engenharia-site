@@ -15,8 +15,7 @@ export const emailService = {
     }
 
     try {
-      // Busca o e-mail do administrador cadastrado no CMS (global_settings)
-      const settings = await cmsService.getGlobalSettings();
+      const settings = await cmsService.getById('global_settings') as any;
       const adminEmail = settings?.email || 'san98@outlook.com.br';
 
 
